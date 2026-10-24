@@ -218,3 +218,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# yggdrasil: the apps repo
+.secrets/
+.venv/
+restart.txt
+**/restart.txt
