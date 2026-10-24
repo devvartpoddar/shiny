@@ -1,0 +1,43 @@
+# _brand.yml — the house look, read by kit.theme (ui.Theme.from_brand) and
+# by Quarto. Change it here and every app follows; an app that needs its
+# own puts a _brand.yml in its folder and kit picks that one up.
+meta:
+  name: Yggdrasil apps
+
+color:
+  palette:
+    ink: "#1b1f24"
+    paper: "#ffffff"
+    mist: "#f4f5f7"
+    line: "#d9dde3"
+    blue: "#2458b3"
+    teal: "#1f8a70"
+    amber: "#c77d00"
+    red: "#b3261e"
+    grey: "#6b7280"
+  foreground: ink
+  background: paper
+  primary: blue
+  secondary: grey
+  success: teal
+  warning: amber
+  danger: red
+  light: mist
+  dark: ink
+
+typography:
+  fonts:
+    - family: Inter
+      source: google
+    - family: JetBrains Mono
+      source: google
+  base:
+    family: Inter
+    size: 15px
+    line-height: 1.5
+  headings:
+    family: Inter
+    weight: 600
+  monospace:
+    family: JetBrains Mono
+    size: 0.9em
