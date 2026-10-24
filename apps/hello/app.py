@@ -7,7 +7,7 @@ from __future__ import annotations
 import os
 import platform
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from shiny import reactive, render
 from shiny.express import input, ui
@@ -17,7 +17,7 @@ import kit
 
 kit.page("Hello", subtitle="If you can read this, Shiny Server is serving the apps repo.")
 
-STARTED = datetime.now(timezone.utc)
+STARTED = datetime.now(UTC)
 
 
 def _db_summary():
