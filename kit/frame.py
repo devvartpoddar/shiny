@@ -24,7 +24,11 @@ def _show(tag) -> None:
 def page(title: str, *, subtitle: str | None = None, fillable: bool = False) -> None:
     """Call once at the top of an Express app: title, theme, the dashboard
     background. Everything after it is the page."""
-    xui.page_opts(title=title, theme=theme(), fillable=fillable)
+    xui.page_opts(window_title=title, theme=theme(), fillable=fillable)
+    from kit.cards import CSS
+    from kit.clicks import JS
+    _show(cui.tags.style(CSS))
+    _show(cui.tags.script(JS))
     with xui.div(class_="kit-header"):
         _show(cui.h2(title, class_="mt-3 mb-0"))
         if subtitle:

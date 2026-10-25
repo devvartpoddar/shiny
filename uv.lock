@@ -718,6 +718,15 @@ wheels = [
 ]
 
 [[package]]
+name = "pycountry"
+version = "26.2.16"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/de/1d/061b9e7a48b85cfd69f33c33d2ef784a531c359399ad764243399673c8f5/pycountry-26.2.16.tar.gz", hash = "sha256:5b6027d453fcd6060112b951dd010f01f168b51b4bf8a1f1fc8c95c8d94a0801", size = 7711342, upload-time = "2026-02-17T03:42:52.367Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/9c/42/7703bd45b62fecd44cd7d3495423097e2f7d28bc2e99e7c1af68892ab157/pycountry-26.2.16-py3-none-any.whl", hash = "sha256:115c4baf7cceaa30f59a4694d79483c9167dbce7a9de4d3d571c5f3ea77c305a", size = 8044600, upload-time = "2026-02-17T03:42:49.777Z" },
+]
+
+[[package]]
 name = "pydantic"
 version = "2.14.1"
 source = { registry = "https://pypi.org/simple" }
@@ -991,9 +1000,11 @@ dependencies = [
     { name = "pandas" },
     { name = "plotly" },
     { name = "psycopg", extra = ["binary"] },
+    { name = "pycountry" },
     { name = "pyyaml" },
     { name = "shiny", extra = ["theme"] },
     { name = "shinywidgets" },
+    { name = "wbg-portfolio" },
 ]
 
 [package.metadata]
@@ -1001,9 +1012,11 @@ requires-dist = [
     { name = "pandas", specifier = ">=2.2" },
     { name = "plotly", specifier = ">=6" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.2" },
+    { name = "pycountry", specifier = ">=24.6" },
     { name = "pyyaml", specifier = ">=6" },
     { name = "shiny", extras = ["theme"], specifier = ">=1.6.2,<2" },
     { name = "shinywidgets", specifier = ">=0.6" },
+    { name = "wbg-portfolio", editable = "/ygg/projects/wbg-digital-resilience" },
 ]
 
 [[package]]
@@ -1163,6 +1176,30 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/59/59/8b1881afccbafda06248be4185e28034dd73c80c85e4da24f2cb0c1321eb/watchfiles-1.3.0-cp314-cp314t-win_amd64.whl", hash = "sha256:d754e049006e81a9be49dc78ba7802081cee426e968cbc63ee19e164fa2d0e39", size = 286879, upload-time = "2026-09-21T09:08:47.874Z" },
     { url = "https://files.pythonhosted.org/packages/46/dd/41c12ae9745d5d72f709333287679d71cbba68ad7678fed872207bba94f4/watchfiles-1.3.0-cp314-cp314t-win_arm64.whl", hash = "sha256:a5b631db08fd3032db57ec6a92d1777cd60f88803287e4e941a4858c53aab1e0", size = 276924, upload-time = "2026-09-21T09:08:48.976Z" },
 ]
+
+[[package]]
+name = "wbg-portfolio"
+version = "0.1.0"
+source = { editable = "/ygg/projects/wbg-digital-resilience" }
+dependencies = [
+    { name = "pandas" },
+    { name = "psycopg", extra = ["binary"] },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "numpy", marker = "extra == 'pipeline'", specifier = "==2.5.3" },
+    { name = "openpyxl", marker = "extra == 'pipeline'", specifier = "==3.1.5" },
+    { name = "pandas", specifier = ">=2.2" },
+    { name = "pdfplumber", marker = "extra == 'pipeline'", specifier = "==0.11.10" },
+    { name = "psycopg", extras = ["binary"], specifier = ">=3.2" },
+    { name = "psycopg", extras = ["binary"], marker = "extra == 'pipeline'", specifier = "==3.3.6" },
+    { name = "requests", marker = "extra == 'pipeline'", specifier = "==2.34.2" },
+]
+provides-extras = ["pipeline"]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = "==9.1.1" }]
 
 [[package]]
 name = "wcwidth"

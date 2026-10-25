@@ -8,9 +8,12 @@ in code here so no app has to remember them:
 - titles are short;
 - no pies or donuts for counts, no stacked bars.
 """
-from kit.charts import bar, empty, figure, line
+from kit.cards import board, card, cards
+from kit.clicks import on_click
+from kit.charts import bar, empty, figure, heatmap, line, world
 from kit.db import query, query_df
 from kit.frame import page, section, tile
 from kit.theme import brand, theme
 
-__all__ = ["bar", "brand", "empty", "figure", "line", "page", "query", "query_df", "section", "theme", "tile"]
+__all__ = ["bar", "board", "brand", "card", "cards", "empty", "figure", "heatmap", "line", "on_click", "page", "query", "query_df",
+           "section", "theme", "tile", "world"]

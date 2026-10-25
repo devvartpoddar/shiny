@@ -10,11 +10,10 @@ dependencies = [
   "pandas>=2.2",
   "psycopg[binary]>=3.2",
   "pyyaml>=6",
-  # An analysis repo plugs in here as a path dependency, once it has a
-  # pyproject.toml of its own — the app then imports its code, no copy:
-  #   "wbg",
-  # with, under [tool.uv.sources]:
-  #   wbg = { path = "/ygg/projects/wbg-digital-resilience", editable = true }
+  "pycountry>=24.6",
+  # An analysis repo plugs in as a path dependency: the app imports its
+  # code from the box's checkout, never a copy (see [tool.uv.sources]).
+  "wbg_portfolio",
 ]
 
 [build-system]
@@ -28,3 +27,6 @@ packages = ["kit"]
 
 [tool.uv]
 package = true
+
+[tool.uv.sources]
+wbg_portfolio = { path = "/ygg/projects/wbg-digital-resilience", editable = true }
