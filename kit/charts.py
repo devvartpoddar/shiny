@@ -81,10 +81,13 @@ def heatmap(z, x, y, *, title: str | None = None, height: int = 360, hover: str 
     return figure(fig, title=title, height=height)
 
 
-def world(iso2, values, names, *, title: str | None = None, height: int = 420, label: str = "commitments") -> go.Figure:
-    """A world map shaded by value. Countries come as ISO 3166 alpha-2 codes;
-    a code that is not a country (a region) is left off, so say beside the
-    map what it does not show."""
+def world(iso2, values, names, *, title: str | None = None, height: int = 420, label: str = "commitments",
+          shaded: bool = False) -> go.Figure:
+    """A world map of where something is. Every country with a value gets the
+    same colour (hover gives the number); shaded=True grades the colour by
+    value instead. Countries come as ISO 3166 alpha-2 codes; a code that is
+    not a country (a region) is left off, so say beside the map what it does
+    not show."""
     import pycountry
 
     def a3(code):
@@ -95,8 +98,9 @@ def world(iso2, values, names, *, title: str | None = None, height: int = 420, l
     p = palette()
     fig = go.Figure(go.Choropleth(
         locations=[r[0] for r in rows], z=[r[1] for r in rows], text=[r[2] for r in rows],
-        locationmode="ISO-3", colorscale=[[0, p.get("mist", "#f4f5f7")], [1, p.get("blue", "#2458b3")]],
-        marker_line_color=p.get("paper", "#ffffff"), marker_line_width=0.5,
+        locationmode="ISO-3",
+        colorscale=[[0, p.get("mist", "#f4f5f7") if shaded else p.get("blue", "#2458b3")], [1, p.get("blue", "#2458b3")]],
+        showscale=shaded, marker_line_color=p.get("paper", "#ffffff"), marker_line_width=0.5,
         colorbar={"thickness": 10, "len": 0.6, "outlinewidth": 0, "title": {"text": label, "side": "right"}},
         hovertemplate="%{text}: %{z:,} " + label + "<extra></extra>"))
     fig.update_geos(projection_type="natural earth", showframe=False, showcoastlines=False,
