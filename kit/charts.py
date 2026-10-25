@@ -65,3 +65,43 @@ def line(x, ys: dict[str, list], *, title: str | None = None, height: int = 360)
     for name, y in ys.items():
         fig.add_trace(go.Scatter(x=x, y=y, mode="lines+markers", name=name))
     return figure(fig, title=title, height=height)
+
+
+def heatmap(z, x, y, *, title: str | None = None, height: int = 360, hover: str = "commitments") -> go.Figure:
+    """Counts in a grid (rows y, columns x), each cell showing its number; an
+    empty cell is blank, not zero. The house's answer to a stacked bar."""
+    p = palette()
+    fig = go.Figure(go.Heatmap(
+        z=z, x=x, y=y, xgap=2, ygap=2, hoverongaps=False, showscale=False,
+        colorscale=[[0, p.get("mist", "#f4f5f7")], [1, p.get("blue", "#2458b3")]],
+        text=[["" if v is None else f"{v:,.0f}" for v in row] for row in z], texttemplate="%{text}",
+        hovertemplate="%{y} · %{x}: %{z:,} " + hover + "<extra></extra>"))
+    fig.update_xaxes(side="top", tickangle=-35)
+    fig.update_yaxes(autorange="reversed")
+    return figure(fig, title=title, height=height)
+
+
+def world(iso2, values, names, *, title: str | None = None, height: int = 420, label: str = "commitments") -> go.Figure:
+    """A world map shaded by value. Countries come as ISO 3166 alpha-2 codes;
+    a code that is not a country (a region) is left off, so say beside the
+    map what it does not show."""
+    import pycountry
+
+    def a3(code):
+        c = pycountry.countries.get(alpha_2=str(code).upper()) if code else None
+        return c.alpha_3 if c else None
+
+    rows = [(a3(c), v, n) for c, v, n in zip(iso2, values, names) if a3(c)]
+    p = palette()
+    fig = go.Figure(go.Choropleth(
+        locations=[r[0] for r in rows], z=[r[1] for r in rows], text=[r[2] for r in rows],
+        locationmode="ISO-3", colorscale=[[0, p.get("mist", "#f4f5f7")], [1, p.get("blue", "#2458b3")]],
+        marker_line_color=p.get("paper", "#ffffff"), marker_line_width=0.5,
+        colorbar={"thickness": 10, "len": 0.6, "outlinewidth": 0, "title": {"text": label, "side": "right"}},
+        hovertemplate="%{text}: %{z:,} " + label + "<extra></extra>"))
+    fig.update_geos(projection_type="natural earth", showframe=False, showcoastlines=False,
+                    showcountries=True, countrycolor=p.get("line", "#d9dde3"), showland=True,
+                    landcolor=p.get("mist", "#f4f5f7"), bgcolor="rgba(0,0,0,0)", lataxis_range=[-50, 75])
+    fig = figure(fig, title=title, height=height)
+    fig.update_layout(margin={"l": 0, "r": 0, "t": 40 if title else 0, "b": 0})
+    return fig

@@ -28,23 +28,30 @@ pyproject.toml, uv.lock one environment for every app (.venv, built on the box b
 
 The house rules are in `kit` so nobody has to remember them: every tile and
 chart is labelled, bars show their values, titles are short, no pies, no
-stacked bars.
+stacked bars. `kit` also has a grid of counts (`heatmap`), a world map from
+ISO country codes (`world`), clickable cards and a board of columns
+(`card`, `cards`, `board`), and `on_click(input, "<chart id>", fn)`, which
+hands a click on any plotly chart to the server (put the key you need in the
+trace's customdata).
 
 ## Linking an analysis repo
 
 An app imports a project's code, it does not copy it. Once the project repo
-has a `pyproject.toml` naming its package, add it here:
+has a `pyproject.toml` naming its package, add it here (the WBG one is):
 
 ```toml
 [project]
-dependencies = [..., "wbg"]
+dependencies = [..., "wbg_portfolio"]
 
 [tool.uv.sources]
-wbg = { path = "/ygg/projects/wbg-digital-resilience", editable = true }
+wbg_portfolio = { path = "/ygg/projects/wbg-digital-resilience", editable = true }
 ```
 
-`uv lock`, commit, `sudo ygg apps sync`. The app then does
-`from wbg import search` and runs the live `main` checkout of that repo.
+`uv lock` (the path must exist where you lock: on a laptop or in a cloud
+session, link your clone there first), commit, `sudo ygg apps sync`. The app
+then does `from wbg_portfolio import app` and runs the live `main` checkout
+of that repo: a merge there reaches the app at its next start, with no lock
+change. Lock again here only when the project's own dependencies change.
 
 ## Keys
 
