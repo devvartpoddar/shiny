@@ -9,6 +9,11 @@ import json
 from shiny import ui
 
 CSS = """
+.kit-tile { background: var(--bs-body-bg, #fff); border: 1px solid var(--bs-border-color, #d9dde3); border-radius: 6px;
+  padding: 10px 14px; display: flex; flex-direction: column; gap: 2px; min-width: 0; height: 100%; }
+.kit-tile-label { font-size: 0.82rem; color: var(--bs-secondary-color, #6b7280); }
+.kit-tile-value { font-size: 1.6rem; font-weight: 600; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.kit-tile-note { font-size: 0.75rem; color: var(--bs-secondary-color, #6b7280); }
 .kit-board { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; align-items: start; }
 .kit-col { background: var(--bs-light, #f4f5f7); border-radius: 6px; padding: 8px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .kit-col > header { display: flex; justify-content: space-between; align-items: center; gap: 6px; font-size: 12.5px; }

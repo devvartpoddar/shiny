@@ -43,8 +43,14 @@ def bar(x, y, *, title: str | None = None, horizontal: bool = False, label: str 
         trace = go.Bar(x=x, y=y, text=text, textposition="outside", name=label or "")
     fig = go.Figure(trace)
     fig.update_traces(cliponaxis=False, marker_line_width=0)
+    # Room past the longest bar for its value, and air between the bars.
+    top = max([v for v in y if isinstance(v, (int, float))] or [0]) * 1.18 or 1
     if horizontal:
         fig.update_yaxes(autorange="reversed")
+        fig.update_xaxes(range=[0, top])
+    else:
+        fig.update_yaxes(range=[0, top])
+    fig.update_layout(bargap=0.35)
     return figure(fig, title=title, height=height)
 
 
@@ -67,17 +73,33 @@ def line(x, ys: dict[str, list], *, title: str | None = None, height: int = 360)
     return figure(fig, title=title, height=height)
 
 
-def heatmap(z, x, y, *, title: str | None = None, height: int = 360, hover: str = "commitments") -> go.Figure:
+def _clip(s, n):
+    s = str(s)
+    return s if len(s) <= n else s[: n - 1].rstrip() + "…"
+
+
+def heatmap(z, x, y, *, title: str | None = None, height: int | None = None, hover: str = "commitments",
+            x_chars: int = 22, y_chars: int = 38) -> go.Figure:
     """Counts in a grid (rows y, columns x), each cell showing its number; an
-    empty cell is blank, not zero. The house's answer to a stacked bar."""
+    empty cell is blank, not zero. The house's answer to a stacked bar.
+    Long names are cut on the axes (the full name is in the hover) and every
+    row and column keeps its label; the height follows the number of rows
+    unless one is given."""
     p = palette()
     fig = go.Figure(go.Heatmap(
-        z=z, x=x, y=y, xgap=2, ygap=2, hoverongaps=False, showscale=False,
+        z=z, x=list(range(len(x))), y=list(range(len(y))), xgap=2, ygap=2, hoverongaps=False, showscale=False,
         colorscale=[[0, p.get("mist", "#f4f5f7")], [1, p.get("blue", "#2458b3")]],
         text=[["" if v is None else f"{v:,.0f}" for v in row] for row in z], texttemplate="%{text}",
-        hovertemplate="%{y} · %{x}: %{z:,} " + hover + "<extra></extra>"))
-    fig.update_xaxes(side="top", tickangle=-35)
-    fig.update_yaxes(autorange="reversed")
+        textfont={"size": 12},
+        hovertext=[[f"{yy} · {xx}" for xx in x] for yy in y],
+        hovertemplate="%{hovertext}: %{z:,} " + hover + "<extra></extra>"))
+    fig.update_xaxes(side="top", tickangle=-30, tickmode="array", tickvals=list(range(len(x))),
+                     ticktext=[_clip(v, x_chars) for v in x], showgrid=False)
+    fig.update_yaxes(autorange="reversed", tickmode="array", tickvals=list(range(len(y))),
+                     ticktext=[_clip(v, y_chars) for v in y], showgrid=False)
+    longest = max([len(_clip(v, x_chars)) for v in x] or [0])
+    if height is None:
+        height = 40 + 6 * longest + 30 * max(len(y), 1)
     return figure(fig, title=title, height=height)
 
 

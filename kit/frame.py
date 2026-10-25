@@ -14,19 +14,33 @@ from shiny import render
 from shiny import ui as cui
 from shiny.express import ui as xui
 
-from kit.theme import theme
+from kit.theme import brand, theme
 
 
 def _show(tag) -> None:
     sys.displayhook(tag)
 
 
-def page(title: str, *, subtitle: str | None = None, fillable: bool = False) -> None:
+def page(title: str, *, subtitle: str | None = None, fillable: bool = False, navbar: str | None = None) -> None:
     """Call once at the top of an Express app: title, theme, the dashboard
-    background. Everything after it is the page."""
-    xui.page_opts(window_title=title, theme=theme(), fillable=fillable)
+    background. Everything after it is the page.
+
+    navbar="<id>": an app of several views gets a dark bar across the top
+    with the title and its tabs (top-level `with ui.nav_panel(...)` blocks;
+    the id is the one ui.update_navs names), and a top-level right-hand
+    `ui.sidebar` beside every view. The subtitle then belongs on the first
+    view, not in the bar."""
     from kit.cards import CSS
     from kit.clicks import JS
+    if navbar:
+        ink = (brand().get("color") or {}).get("palette", {}).get("ink", "#1b1f24")
+        # A navbar page takes only tabs at its top level: the style and the
+        # click script go in its header.
+        xui.page_opts(title=title, window_title=title, theme=theme(), fillable=fillable, id=navbar,
+                      navbar_options=cui.navbar_options(bg=ink, theme="dark"),
+                      header=cui.TagList(cui.tags.style(CSS), cui.tags.script(JS)))
+        return
+    xui.page_opts(window_title=title, theme=theme(), fillable=fillable)
     _show(cui.tags.style(CSS))
     _show(cui.tags.script(JS))
     with xui.div(class_="kit-header"):
@@ -53,13 +67,22 @@ def tile(label: str, value=None, note: str | None = None, *, color: str = "prima
         @kit.tile("Rows", note="in work")                 # a function returning the text
         def rows(): return f"{n:,}"
     """
+    # A small white card with the number in the colour: a row of these reads
+    # as a strip, not a wall of colour. Plain HTML, so it lays out the same
+    # in every container.
+    def card(val):
+        return cui.div(cui.div(label, class_="kit-tile-label"),
+                       cui.div(val, class_=f"kit-tile-value text-{color}"),
+                       cui.div(note, class_="kit-tile-note") if note else None,
+                       class_="kit-tile")
+
     if value is not None:
-        return cui.value_box(label, value, note or "", theme=color, class_="kit-tile")
+        return card(value)
 
     def wrap(fn):
         # A decorator's result is bound, not shown; the renderer tagifies
-        # to its output slot inside the box.
-        _show(cui.value_box(label, render.text(fn), note or "", theme=color, class_="kit-tile"))
+        # to its output slot inside the card.
+        _show(card(render.text(fn, inline=True)))
         return fn
 
     return wrap
