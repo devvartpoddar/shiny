@@ -146,11 +146,44 @@ def tally(df, *by, of=None):
     return W.tally(df, *by, unit=input.unit(), base=base() if of is None else of)
 
 
-def cell_text(r):
-    """What a bar shows: the count, and in the project view its share."""
+def cell_text(r, one_base=False):
+    """What a bar shows: the count; in the project view also its share, and
+    its base ("6 of 10") unless every bar of the chart has the same base,
+    which the chart then says once (base_note)."""
     if by_projects() and pd.notna(r["share"]):
+        if one_base:
+            return f"{int(r['n']):,} ({r['share']:.0%})"
         return f"{int(r['n']):,} of {int(r['of']):,} ({r['share']:.0%})"
     return f"{int(r['n']):,}"
+
+
+def one_base(c):
+    """Whether every row of a tally is a share of the same number of projects."""
+    return by_projects() and c["of"].notna().all() and c["of"].nunique() == 1
+
+
+def base_what(of):
+    """In words, the projects a share is taken of (of as given to tally)."""
+    if of is None:
+        return f"{cohort_noun()} read"
+    return {"country": f"{cohort_noun()} read here", "project": "projects",
+            "asset": "projects with this asset", "measure": "projects with this measure"}[input.lens()]
+
+
+def base_note(fig, c, of, *, below=False):
+    """One line on a chart whose bars or cells all share a base: 'Projects, of
+    68 digital projects read'. Over a bar chart; under a grid, whose column
+    names sit along its top."""
+    if not one_base(c):
+        return fig
+    fig.add_annotation(text=f"Projects, of {int(c['of'].iloc[0]):,} {base_what(of)}", xref="paper", yref="paper",
+                       x=1, y=0 if below else 1, xanchor="right", yanchor="top" if below else "bottom",
+                       yshift=-8 if below else 6, showarrow=False, font={"size": 12.5, "color": "#4b5563"})
+    if below:
+        fig.update_layout(margin_b=34, height=(fig.layout.height or 360) + 26)
+    else:
+        fig.update_layout(margin_t=30)
+    return fig
 
 
 def cell_hover(name, r):
@@ -345,9 +378,9 @@ with ui.nav_panel("Overview"):
         if not by_projects():
             return None
         return cui.div(f"Counting projects: a project counts once in each bar or cell it has a commitment in, so the "
-                       f"bars do not add up to the number of projects. Each bar and cell says how many projects of "
-                       f"how many: of the {len(base()):,} {cohort_noun()} with a document read, or of the projects "
-                       f"in that country, region or year.",
+                       f"bars do not add up to the number of projects. A chart names its base once when every bar "
+                       f"shares it (of the {len(base()):,} {cohort_noun()} with a document read); where the base "
+                       f"differs by country, region or year, each bar or cell says \"6 of 10\".",
                        class_="alert alert-light border py-2 small mb-3")
 
     with ui.card():
@@ -413,9 +446,12 @@ with ui.nav_panel("Overview"):
             def ov_stage():
                 c = tally(frame(), "stage").set_index("stage").reindex(W.STAGES[:-1]).reset_index()
                 c["n"] = c["n"].fillna(0)
+                same = one_base(c.dropna(subset=["of"])) if by_projects() else False
                 fig = kit.bar(c["stage"].tolist(), c["n"].astype(int).tolist(), horizontal=True,
-                              text=[cell_text(r) for _, r in c.iterrows()],
+                              text=[cell_text(r, same) for _, r in c.iterrows()],
                               hover=[cell_hover(r["stage"], r) for _, r in c.iterrows()])
+                if same:
+                    base_note(fig, c.dropna(subset=["of"]), None)
                 return clickable("ov_stage", fig, c["stage"].tolist(), lambda s: open_drill(f"Linked procurement: {s}", stage=s))
 
             ui.p("Package links are found for about a third of commitments.", class_="small")
@@ -765,7 +801,7 @@ def heat(name, df, rows, cols, *, where=None, of=None, xlab=lambda v: v, ylab=la
     hover = [[cell_hover(f"{ylab(y)} · {full(x)}", look[(y, x)]) if (y, x) in look else "" for x in t.columns]
              for y in t.index]
     text = None
-    if by_projects():
+    if by_projects() and not one_base(c):
         # A cell says how many projects of how many: the count, and its base under it.
         text = [[f"<b>{int(look[(y, x)]['n']):,}</b><br>of {int(look[(y, x)]['of']):,}"
                  if (y, x) in look and pd.notna(look[(y, x)]["of"]) else ("" if (y, x) not in look else f"{int(look[(y, x)]['n']):,}")
@@ -774,6 +810,7 @@ def heat(name, df, rows, cols, *, where=None, of=None, xlab=lambda v: v, ylab=la
                       hovertext=hover, text=text, x_chars=x_chars, y_chars=y_chars)
     if text is not None:
         fig.update_traces(textfont={"size": 11})
+    base_note(fig, c, of, below=True)
     keys = [[[y, x] for x in t.columns] for y in t.index]
     return clickable(name, fig, keys,
                      lambda k: open_drill(f"{ylab(k[0])} · {xlab(k[1])}", **(where or {}), **{rows: k[0], cols: k[1]}))
@@ -788,9 +825,11 @@ def bars(name, df, col, *, where=None, of=None, label=lambda v: v, click=None, w
     if col == "asset_name":
         c = pd.concat([c[c[col] != W.NO_ASSET], c[c[col] == W.NO_ASSET]])
     keys = c[col].tolist()
+    same = one_base(c)
     fig = kit.bar([label(k) for k in keys], c["n"].tolist(), horizontal=True, wrap_at=wrap_at,
-                  text=[cell_text(r) for _, r in c.iterrows()],
+                  text=[cell_text(r, same) for _, r in c.iterrows()],
                   hover=[cell_hover(label(r[col]), r) for _, r in c.iterrows()])
+    base_note(fig, c, of)
     return clickable(name, fig, keys, click or (lambda k: open_drill(label(k), **(where or {}), **{col: k})))
 
 
