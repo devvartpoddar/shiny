@@ -28,11 +28,16 @@ pyproject.toml, uv.lock one environment for every app (.venv, built on the box b
 
 The house rules are in `kit` so nobody has to remember them: every tile and
 chart is labelled, bars show their values, titles are short, no pies, no
-stacked bars. `kit` also has a grid of counts (`heatmap`), a world map from
+stacked bars; long names on a bar chart or a grid are wrapped, never cut or
+turned. `kit` also has a grid of counts (`heatmap`), a world map from
 ISO country codes (`world`), clickable cards and a board of columns
 (`card`, `cards`, `board`), and `on_click(input, "<chart id>", fn)`, which
 hands a click on any plotly chart to the server (put the key you need in the
-trace's customdata).
+trace's customdata). For lists of findings there are tags told apart by form
+(`tag`: solid, tint, outline), a status dot (`dot`), quoted text that clips
+and opens in place (`quote`), a block that opens on a click (`fold`), and a
+cache shared by every session of an app (`cached`; Express runs `app.py`
+again for each visitor, so a dict in the app is new every time).
 
 ## Linking an analysis repo
 
