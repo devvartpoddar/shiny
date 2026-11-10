@@ -47,11 +47,12 @@ def short_asset(a):
     return a
 
 
-REGION_SHORT = {"Eastern and Southern Africa": "Eastern & Southern Africa",
-                "Western and Central Africa": "Western & Central Africa",
-                "Middle East, North Africa, Afghanistan, and Pakistan": "Middle East, North Africa, Afghanistan & Pakistan",
-                "Latin America and Caribbean": "Latin America & Caribbean",
-                "East Asia and Pacific": "East Asia & Pacific", "Europe and Central Asia": "Europe & Central Asia"}
+# The World Bank's own codes for its regions; the full name is in the hover.
+REGION_SHORT = {"Eastern and Southern Africa": "AFE", "Western and Central Africa": "AFW",
+                "East Asia and Pacific": "EAP", "Europe and Central Asia": "ECA",
+                "Latin America and Caribbean": "LAC", "South Asia": "SAR",
+                "Middle East, North Africa, Afghanistan, and Pakistan": "MENAAP",
+                "Middle East and North Africa": "MENA"}
 
 
 def short_region(r):
@@ -148,7 +149,7 @@ def tally(df, *by, of=None):
 def cell_text(r):
     """What a bar shows: the count, and in the project view its share."""
     if by_projects() and pd.notna(r["share"]):
-        return f"{int(r['n']):,} · {r['share']:.0%}"
+        return f"{int(r['n']):,} of {int(r['of']):,} ({r['share']:.0%})"
     return f"{int(r['n']):,}"
 
 
@@ -344,8 +345,9 @@ with ui.nav_panel("Overview"):
         if not by_projects():
             return None
         return cui.div(f"Counting projects: a project counts once in each bar or cell it has a commitment in, so the "
-                       f"bars do not add up to the number of projects. Shares are of the {len(base()):,} "
-                       f"{cohort_noun()} with a document read; by country, region or year, of the projects there.",
+                       f"bars do not add up to the number of projects. Each bar and cell says how many projects of "
+                       f"how many: of the {len(base()):,} {cohort_noun()} with a document read, or of the projects "
+                       f"in that country, region or year.",
                        class_="alert alert-light border py-2 small mb-3")
 
     with ui.card():
@@ -758,10 +760,20 @@ def heat(name, df, rows, cols, *, where=None, of=None, xlab=lambda v: v, ylab=la
     t = t.reindex(index=r_order, columns=c_order)
     z = [[int(v) if pd.notna(v) and v else None for v in r] for r in t.values]
     look = {(r[rows], r[cols]): r for _, r in c.iterrows()}
-    hover = [[cell_hover(f"{ylab(y)} · {xlab(x)}", look[(y, x)]) if (y, x) in look else "" for x in t.columns]
+    # The hover names the row and column in full, whatever the axis shortens them to.
+    full = (lambda v: v) if cols == "region" else xlab
+    hover = [[cell_hover(f"{ylab(y)} · {full(x)}", look[(y, x)]) if (y, x) in look else "" for x in t.columns]
              for y in t.index]
+    text = None
+    if by_projects():
+        # A cell says how many projects of how many: the count, and its base under it.
+        text = [[f"<b>{int(look[(y, x)]['n']):,}</b><br>of {int(look[(y, x)]['of']):,}"
+                 if (y, x) in look and pd.notna(look[(y, x)]["of"]) else ("" if (y, x) not in look else f"{int(look[(y, x)]['n']):,}")
+                 for x in t.columns] for y in t.index]
     fig = kit.heatmap(z, [xlab(x) for x in t.columns], [ylab(y) for y in t.index], height=height,
-                      hovertext=hover, x_chars=x_chars, y_chars=y_chars)
+                      hovertext=hover, text=text, x_chars=x_chars, y_chars=y_chars)
+    if text is not None:
+        fig.update_traces(textfont={"size": 11})
     keys = [[[y, x] for x in t.columns] for y in t.index]
     return clickable(name, fig, keys,
                      lambda k: open_drill(f"{ylab(k[0])} · {xlab(k[1])}", **(where or {}), **{rows: k[0], cols: k[1]}))
